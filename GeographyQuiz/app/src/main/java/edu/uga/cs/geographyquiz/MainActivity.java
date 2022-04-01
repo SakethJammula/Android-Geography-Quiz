@@ -19,14 +19,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         db = SqliteDbHelper.getDbInstance(getApplicationContext());
-        dbInstance = db.getWritableDatabase();
+        dbInstance = SqliteDbHelper.open(db);
 
         try {
-            SqliteDbHelper.insert_data_in_database(dbInstance,
-                    getAssets().open("country_continent.csv"), CONTINENT);
-            SqliteDbHelper.insert_data_in_database(dbInstance,
-                    getAssets().open("country_neighbors.csv"), NEIGHBORS);
+            SqliteDbHelper.insert_data_in_database(getAssets().open("country_continent.csv"), CONTINENT);
+            SqliteDbHelper.insert_data_in_database(getAssets().open("country_neighbors.csv"), NEIGHBORS);
         } catch (IOException e) {
             e.printStackTrace();
         }
