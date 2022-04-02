@@ -2,6 +2,7 @@ package edu.uga.cs.geographyquiz;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -16,7 +17,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class SqliteDbHelper extends SQLiteOpenHelper {
-    private static final String Sqlite = "SqliteDbHelper";
+    public static final String Sqlite = "SqliteDbHelper";
     private static final String dbName = "geogQuiz.db";
     private static final int version = 1;
     private static SqliteDbHelper dbInstance = null;
@@ -30,9 +31,9 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
     private static final String tableQuiz = "quiz";
 
     private static final String countryId = "country_id";
-    private static final String countryName = "country_name";
-    private static final String continent = "continent";
-    private static final String neighbors = "neighbors";
+    public static final String countryName = "country_name";
+    public static final String continent = "continent";
+    public static final String neighbors = "neighbors";
     private static final String quizId = "quiz_id";
     private static final String scores = "scores";
     private static final String dateTime = "date_and_time";
@@ -64,6 +65,11 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
             createNeighbors,
             createQuiz
     };
+
+    public static class ReaderDb {
+        InputStream csv;
+        int choice;
+    }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -142,48 +148,107 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public static void insert_data_in_database(InputStream csv, int choice) {
-        CSVReader reader = new CSVReader(new InputStreamReader(csv));
+    private static synchronized boolean retrieve_entries_in_table() {
+        int continentCount = 0, neighborsCount = 0;
 
-        switch (choice) {
-            case CONTINENT:
-                new DbWriterContinentHelper().execute(csv);
-                break;
-            case NEIGHBORS:
-                new DbWriterNeighborsHelper().execute(csv);
-                break;
+        if (!db.isOpen()) {
+            return false;
         }
+
+        Cursor cursor = db.query(tableContinents, null, null, null,
+                null, null, null);
+
+        if (cursor != null) {
+            continentCount = cursor.getCount();
+
+            if (continentCount > 0) {
+                QuizDesign.fill_country_with_continent_list(cursor, continentCount);
+            }
+
+            cursor.close();
+        }
+
+        cursor = db.query(tableNeighbors, null, null, null,
+                null, null, null);
+
+        if (cursor != null) {
+            neighborsCount = cursor.getCount();
+
+            if (neighborsCount > 0) {
+                QuizDesign.fill_neighbors_list(cursor, neighborsCount);
+            }
+
+            cursor.close();
+        }
+
+        return continentCount > 0 && neighborsCount > 0;
     }
 
-    public static class DbWriterContinentHelper extends AsyncTask<InputStream, CSVReader> {
+    public static class DbWriterContinentHelper extends AsyncTask<InputStream, Integer> {
         @Override
-        protected CSVReader doInBackground(InputStream... csv) {
-            return new CSVReader(new InputStreamReader(csv[0]));
-        }
-
-        @Override
-        protected void onPostExecute(CSVReader reader) {
+        protected Integer doInBackground(InputStream... csv) {
+            CSVReader reader = new CSVReader(new InputStreamReader(csv[0]));
             if (db == null) {
-                return;
+                return -1;
             }
 
             write_continent(db, reader);
+            retrieve_entries_in_table();
+            return 0;
+        }
+
+        @Override
+        protected void onPostExecute(Integer i) {
+            Log.d(Sqlite, "Written continent data");
         }
     }
 
-    public static class DbWriterNeighborsHelper extends AsyncTask<InputStream, CSVReader> {
+    public static class DbWriterNeighborsHelper extends AsyncTask<InputStream, Integer> {
         @Override
-        protected CSVReader doInBackground(InputStream... csv) {
-            return new CSVReader(new InputStreamReader(csv[0]));
-        }
-
-        @Override
-        protected void onPostExecute(CSVReader reader) {
+        protected Integer doInBackground(InputStream... csv) {
+            CSVReader reader = new CSVReader(new InputStreamReader(csv[0]));
             if (db == null) {
-                return;
+                return -1;
             }
 
             write_neighbours(db, reader);
+            retrieve_entries_in_table();
+            return 0;
+        }
+
+        @Override
+        protected void onPostExecute(Integer i) {
+            Log.d(Sqlite, "Written neighbors data");
+        }
+    }
+
+    public static class DbReaderHelper extends AsyncTask<ReaderDb, ReaderDb> {
+
+        @Override
+        protected ReaderDb doInBackground(ReaderDb... arguments) {
+            boolean isDbFilled = retrieve_entries_in_table();
+
+            if (isDbFilled) {
+                Log.d(Sqlite, "Database is filled");
+                return null;
+            }
+
+            Log.d(Sqlite, "Database is empty for choice : "+arguments[0].choice);
+            return arguments[0];
+        }
+
+        @Override
+        protected void onPostExecute(ReaderDb result) {
+            if (result != null) {
+                Log.d(Sqlite, "Filling data base for choice : "+result.choice);
+                switch (result.choice) {
+                    case CONTINENT:
+                        new DbWriterContinentHelper().execute(result.csv);
+                        break;
+                    case NEIGHBORS:
+                        new DbWriterNeighborsHelper().execute(result.csv);
+                }
+            }
         }
     }
 }
