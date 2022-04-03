@@ -57,7 +57,7 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
             "create table " + tableQuiz + " ("
                     + quizId + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + scores + " INTEGER, "
-                    + dateTime + " DATETIME "
+                    + dateTime + " TEXT "
                     + ")";
 
     private static final String [] tableScripts = {
@@ -163,6 +163,15 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 
             if (continentCount > 0) {
                 QuizDesign.fill_country_with_continent_list(cursor, continentCount);
+                QuizDesign.design_country_questions();
+                QuizDesign.QuizQuestions[] quiz = QuizDesign.get_questions_on_continents();
+
+                for (QuizDesign.QuizQuestions quizQuestions : quiz) {
+                    Log.d(Sqlite, "Question : " + quizQuestions.question);
+                    Log.d(Sqlite, "Option0 : " + quizQuestions.option0);
+                    Log.d(Sqlite, "Option1 : " + quizQuestions.option1);
+                    Log.d(Sqlite, "Option2 : " + quizQuestions.option2);
+                }
             }
 
             cursor.close();
@@ -176,12 +185,55 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
 
             if (neighborsCount > 0) {
                 QuizDesign.fill_neighbors_list(cursor, neighborsCount);
+                QuizDesign.design_neighbors_questions();
+                QuizDesign.QuizQuestions[] quiz = QuizDesign.get_questions_on_neighbors();
+
+                for (QuizDesign.QuizQuestions quizQuestions : quiz) {
+                    Log.d(Sqlite, "Neighbors Question : " + quizQuestions.question);
+                    Log.d(Sqlite, "Neighbors Option0 : " + quizQuestions.option0);
+                    Log.d(Sqlite, "Neighbors Option1 : " + quizQuestions.option1);
+                    Log.d(Sqlite, "Neighbors Option2 : " + quizQuestions.option2);
+                    Log.d(Sqlite, "Neighbors Option3 : " + quizQuestions.option3);
+                }
             }
 
             cursor.close();
         }
 
         return continentCount > 0 && neighborsCount > 0;
+    }
+
+    public static class QuizRecords {
+        int scores;
+        String dateTime;
+    }
+
+    public static synchronized QuizRecords[] retrieve_quiz_records() {
+        QuizRecords[] quizRecords = null;
+        if (!db.isOpen()) {
+            return null;
+        }
+
+        Cursor cursor = db.query(tableQuiz, null, null, null,
+                null, null, null);
+
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                quizRecords = new QuizRecords[cursor.getCount()];
+                int i = 0;
+                while (cursor.moveToNext()) {
+                    quizRecords[i] = new QuizRecords();
+                    int index = cursor.getColumnIndex(scores);
+                    quizRecords[i].scores = cursor.getInt(index);
+                    index = cursor.getColumnIndex(dateTime);
+                    quizRecords[i].dateTime = cursor.getString(index);
+                }
+            }
+
+            cursor.close();
+        }
+
+        return quizRecords;
     }
 
     public static class DbWriterContinentHelper extends AsyncTask<InputStream, Integer> {
@@ -249,6 +301,36 @@ public class SqliteDbHelper extends SQLiteOpenHelper {
                         new DbWriterNeighborsHelper().execute(result.csv);
                 }
             }
+        }
+    }
+
+    public static class QuizReader extends AsyncTask<Void, QuizRecords[]> {
+
+        @Override
+        protected QuizRecords[] doInBackground(Void... arguments) {
+            return retrieve_quiz_records();
+        }
+
+        @Override
+        protected void onPostExecute(QuizRecords[] quizRecords) {
+            // Place holder to call any method that can use the quiz records
+        }
+    }
+
+    public static class QuizWriter extends AsyncTask<QuizRecords, Void> {
+        @Override
+        protected Void doInBackground(QuizRecords... arguments) {
+            ContentValues values = new ContentValues();
+            values.put(scores, arguments[0].scores);
+            values.put(dateTime, arguments[0].dateTime);
+            db.insert(tableQuiz, null, values);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            // Place holder to call any method that wanted to get executed after the quiz is written
+            // on the database
         }
     }
 }

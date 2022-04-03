@@ -42,5 +42,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         dbInstance = SqliteDbHelper.open(db);
+        Log.d(DEBUG_TAG, "Reached");
     }
 }
