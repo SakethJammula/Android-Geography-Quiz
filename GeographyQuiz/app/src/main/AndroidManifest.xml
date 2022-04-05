@@ -10,6 +10,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GeographyQuiz">
         <activity
+            android:name=".startQuiz"
+            android:exported="false" />
+        <activity
+            android:name=".ViewResultsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HelpScreen"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

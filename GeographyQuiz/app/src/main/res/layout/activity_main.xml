@@ -7,12 +7,92 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/QuizHeading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:textSize="36sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constrainedWidth="true"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="Geography Quiz"
+        />
+
+    <TextView
+        android:id="@+id/Description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Test your knowledge on countries and continents"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="260dp"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/QuizHeading"
+        />
+
+    <Button
+        android:id="@+id/Help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Help"
+        android:textStyle="bold"
+        android:backgroundTint="@color/black"
+        android:textAllCaps="false"
+
+
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginRight="15dp"
+
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/StartQuiz"
+        android:text="Start Quiz"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:backgroundTint="@color/black"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/QuizHeading"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintVertical_bias="0.509"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="39dp" />
+
+    <Button
+        android:id="@+id/ViewResults"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="220dp"
+        android:layout_marginTop="8dp"
+        android:text="View Results"
+        android:textAllCaps="false"
+        android:backgroundTint="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/StartQuiz"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/QuizHeading"
+
+        app:layout_constraintVertical_bias="0.51"
+        tools:ignore="MissingConstraints" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

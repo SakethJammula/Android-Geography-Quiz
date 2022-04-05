@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Random;
 
 public class QuizDesign {
     public static ArrayList<String> listOfCountries = new ArrayList<>();
@@ -71,7 +72,8 @@ public class QuizDesign {
     }
 
     private static int random_index_generator(int length) {
-        return (int) Math.round(Math.random() * length);
+        Random random = new Random();
+        return random.nextInt(length);
     }
 
     private static void set_options(int option, int countryId, QuizQuestions quiz, ArrayList<String>array) {
@@ -91,7 +93,7 @@ public class QuizDesign {
     private static void fill_remaining_options(QuizQuestions quiz, ArrayList<String>array,
                                                boolean[] bitmap) {
         while (quiz.option0 == null || quiz.option1 == null || quiz.option2 == null) {
-            int continentId = (int) Math.floor(Math.random() * array.size());
+            int continentId = random_index_generator(array.size());
 
             if (continentId == array.size()) {
                 continentId--;
@@ -126,11 +128,15 @@ public class QuizDesign {
     }
 
     private static void fill_remaining_neighbor_options(QuizQuestions quiz, JSONArray array,
-                                                        int countryId) {
+                                                        int countryId, int correctOption) {
         boolean[] countryTracker = new boolean[listOfCountries.size()];
         Arrays.fill(countryTracker, false);
 
         countryTracker[countryId] = true;
+
+        if (correctOption != -1) {
+            countryTracker[correctOption] = true;
+        }
 
         ArrayList<String> neighboringCountries = new ArrayList<>();
 
@@ -144,7 +150,7 @@ public class QuizDesign {
         HashSet<String>neighborSet = new HashSet<>(neighboringCountries);
 
         while (quiz.option0 == null || quiz.option1 == null || quiz.option2 == null) {
-            int id = (int) Math.floor(Math.random() * listOfCountries.size());
+            int id = random_index_generator(listOfCountries.size());
 
             if (id == countryId || neighborSet.contains(listOfCountries.get(id)) ||
                     countryTracker[id]) {
@@ -184,7 +190,7 @@ public class QuizDesign {
             }
 
             for (int i = 0; i < noOfQuestions; i++) {
-                int countryId = random_index_generator(listOfCountries.size() - 1);
+                int countryId = random_index_generator(listOfCountries.size());
 
                 if (countryBitmap[countryId]) {
                     i--;
@@ -194,7 +200,7 @@ public class QuizDesign {
                 questionAndOptions[i].question = listOfCountries.get(countryId);
                 countryBitmap[countryId] = true;
                 countryAnswers.add(countryInContinent.get(countryId));
-                int optionId = random_index_generator(noOfOptions - 1);
+                int optionId = random_index_generator(noOfOptions);
                 set_options(optionId, countryId, questionAndOptions[i], countryInContinent);
 
                 for (int j = 0; j < uniqueContinents.size(); j++) {
@@ -223,6 +229,8 @@ public class QuizDesign {
     }
 
     public static void design_neighbors_questions() {
+        int correctOption = -1;
+
         if (neighborsAndOptions == null) {
             neighborsAndOptions = new QuizQuestions[noOfQuestions];
 
@@ -236,7 +244,7 @@ public class QuizDesign {
             }
 
             for (int i = 0; i < noOfQuestions; i++) {
-                int countryId = random_index_generator(listOfCountries.size() - 1);
+                int countryId = random_index_generator(listOfCountries.size());
 
                 if (countryBitmap[countryId]) {
                     i--;
@@ -252,16 +260,18 @@ public class QuizDesign {
                     countryJson = new JSONObject(neighboursJson);
                     JSONArray neighboursArrJson = countryJson.getJSONArray(listOfCountries.get(countryId));
 
-                    int optionId = random_index_generator(noOfOptions - 1);
+                    int optionId = random_index_generator(noOfOptions);
 
                     if (neighboursArrJson.length() > 0) {
                         String countryName = neighboursArrJson.getString(0);
                         neighborsAnswers.add(countryName);
-                        set_options(optionId, get_country_id(countryName), neighborsAndOptions[i],
+                        correctOption = get_country_id(countryName);
+                        set_options(optionId, correctOption, neighborsAndOptions[i],
                                     listOfCountries);
                     }
 
-                    fill_remaining_neighbor_options(neighborsAndOptions[i], neighboursArrJson, countryId);
+                    fill_remaining_neighbor_options(neighborsAndOptions[i], neighboursArrJson,
+                                                    countryId, correctOption);
                     neighborsAndOptions[i].option3 = "No Neighbors";
                 } catch (Exception e) {
                     Log.d(SqliteDbHelper.Sqlite, "Exception occurred : "+e);

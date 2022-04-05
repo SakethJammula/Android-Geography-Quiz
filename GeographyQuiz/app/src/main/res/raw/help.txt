@@ -1,0 +1,11 @@
+Basic rules of the quiz.
+
+1. There will be 12 questions
+
+2. Swipe left after you answer a question
+
+3. Your results will be displayed after you finish the quiz
+
+4. Click Start Quiz to begin the quiz
+
+5. You can also view your previous results by clicking on View Results
